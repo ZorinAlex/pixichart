@@ -40,9 +40,22 @@
             lineColor: 0xFFFFFF,
             infoText: null,
             points: [],
-            currentPoints: []
+            currentPoints: [],
+            colors: null
         }),
         mounted() {
+
+            this.colors = {
+                background: '#0C0C0C',
+                line: '#DBDBDB',
+                point: '#7EDDA6',
+                horizontalLines: '#262626',
+                texts: '#797979',
+                infoBoxBackground: '#219653',
+                infoBoxText: '#FFFFFF',
+                infoPoint: '#219653',
+
+            };
             //for devtools
             window.PIXI = PIXI;
             //
