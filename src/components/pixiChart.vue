@@ -1,6 +1,5 @@
 <template>
     <div class="chart">
-        <canvas id="chart-canvas"></canvas>
     </div>
 </template>
 
@@ -64,8 +63,9 @@
             //for devtools
             window.PIXI = PIXI;
             //
-            this.app = new PIXI.Application({ antialias: true, transparent: false, backgroundColor: this.colors.background, resolution: 1.25, view:window.document.getElementById('chart-canvas')});
+            this.app = new PIXI.Application({ antialias: true, transparent: false, backgroundColor: this.colors.background, resolution: 1.25});
             window.addEventListener('resize', this.onDeviceScreenResize);
+            this.$el.appendChild(this.app.view);
             this.app.renderer.view.style.display = "block";
             this.app.renderer.autoResize = true;
             this.app.renderer.resize(this.$el.offsetWidth, this.chartHeight);
@@ -577,8 +577,8 @@
     }
 </script>
 
-<style scoped>
-    .chart canvas{
+<style>
+    canvas{
         max-width: 100%
     }
 </style>
