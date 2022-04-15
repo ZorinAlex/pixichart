@@ -41,7 +41,8 @@
             infoText: null,
             points: [],
             currentPoints: [],
-            colors: null
+            colors: null,
+            labelStyles: null
         }),
         mounted() {
             this.colors = {
@@ -51,11 +52,31 @@
                 horizontalLines: '#262626',
                 texts: '#a8a8a8',
                 infoBoxBackground: '#219653',
-                infoBoxText: '#FFFFFF',
+                infoBoxText: '#cccccc',
+                infoBoxValues: '#FFFFFF',
                 infoPoint: '#219653',
                 miniChartPickerLines: '#BAF6D3',
                 miniChartSideBackground: '#121212',
                 miniChartCenterBackground: '#219653'
+            };
+            this.labelStyles = {
+                fontFamily: 'Roboto',
+                horizontalLabels: {
+                    fontSize: 11,
+                    fontWeight: 'normal',
+                },
+                verticalLabels: {
+                    fontSize: 11,
+                    fontWeight: 'normal',
+                },
+                infoBoxValues: {
+                    fontSize: 13,
+                    fontWeight: 'normal',
+                },
+                infoBoxText: {
+                    fontSize: 11,
+                    fontWeight: 'normal',
+                }
             };
             for (let property in this.colors) {
                 this.colors[property] = PIXI.utils.string2hex(this.colors[property])
@@ -105,11 +126,26 @@
             this.miniLinePickerGraphics = new PIXI.Graphics();
             this.globalsParams = null;
             this.infoPointSprite = null;
-            PIXI.BitmapFont.from("Roboto", {
+            PIXI.BitmapFont.from("HLFont", {
                 fill: this.colors.texts,
-                fontSize: 44,
-                fontWeight: 'normal',
+                fontSize: this.labelStyles.horizontalLabels.fontSize*2,
+                fontWeight: this.labelStyles.horizontalLabels.fontWeight,
             });
+            PIXI.BitmapFont.from("VLFont", {
+                fill: this.colors.texts,
+                fontSize: this.labelStyles.horizontalLabels.fontSize*2,
+                fontWeight: this.labelStyles.horizontalLabels.fontWeight,
+            });
+            PIXI.BitmapFont.from("IBValues", {
+                fill: this.colors.infoBoxValues,
+                fontSize: this.labelStyles.infoBoxValues.fontSize*2,
+                fontWeight: this.labelStyles.infoBoxValues.fontWeight,
+            }, {chars: [['a', 'z'], ['0', '9'], ['A', 'Z'], '.:- ']});
+            PIXI.BitmapFont.from("IBText", {
+                fill: this.colors.infoBoxText,
+                fontSize: this.labelStyles.infoBoxValues.fontSize*2,
+                fontWeight: this.labelStyles.infoBoxValues.fontWeight,
+            }, {chars: [['a', 'z'], ['0', '9'], ['A', 'Z'], '.:- ']});
             this.addInfoGraphics();
             this.addTestData();
         },
@@ -117,7 +153,7 @@
             addTestData(){
                 let points = [];
                 for(let i = 0; i < 50; i++){
-                    points.push({x: i*5, y: Math.tan(Math.random())*Math.random()*150, color: this.colors.point, shape: 'circle', size:4});
+                    points.push({x: i*5, y: Math.tan(Math.random())*Math.random()*150, color: this.colors.point, shape: 'circle', size:4, info: "BUY ME A NUGGET"});
                 }
                 this.addPointsArray(points);
             },
@@ -134,12 +170,12 @@
                 this.miniLineGraphics.clear();
                 this.linePointsGraphics.clear();
             },
-            addPoint(x, y, color, shape, size){
+            addPoint(x, y, color, shape, size, info){
                 this.clearContainers();
                 this.points.push({x,y,color,shape,size});
                 this.drawMiniLineChart();
                 if(!this.selectionEnabled) this.addTimePickers();
-                this.currentPoints.push({x,y,color,shape,size});
+                this.currentPoints.push({x,y,color,shape,size, info});
                 this.drawLineChart();
                 this.drawHorizontalAxes();
                 this.addValueLabels();
@@ -224,8 +260,8 @@
                 const labelValueStep = (Ymax - Ymin)/this.horizontalLines;
                 if(this.valuesLabelsContainer.children.length === 0){
                     let textStyle = {
-                        fontName: "Roboto",
-                        fontSize: 11
+                        fontName: "HLFont",
+                        fontSize: this.labelStyles.horizontalLabels.fontSize
                     };
                     _.forEach(_.range(0, this.horizontalLines+1), line =>{
                         const y_coord = this.viewHeight() - horizontalLineStep * line;
@@ -243,8 +279,8 @@
             addTimeLabels(){
                 if(this.timeLabelsContainer.children.length === 0){
                     let textStyle = {
-                        fontName: "Roboto",
-                        fontSize: 11
+                        fontName: "VLFont",
+                        fontSize: this.labelStyles.verticalLabels.fontSize
                     };
                     _.forEach(_.range(0, this.maxHorizontalLabels+1), () =>{
                         const label = new PIXI.BitmapText("", textStyle);
@@ -479,29 +515,29 @@
                 this.lineGraphics.on('mousemove', this.onMoveInfographics);
                 this.infoText = new PIXI.Container();
                 this.infoText.alpha = 0;
-                PIXI.BitmapFont.from("RobotoBig", {
-                    fill: "#ffffff",
-                    fontSize: 13,
-                    fontWeight: 'normal',
-                }, {chars: [['a', 'z'], ['0', '9'], ['A', 'Z'], '.:']});
                 let textStyle = {
-                    fontName: "RobotoBig",
-                    fontSize: 13
+                    fontName: "IBValues",
+                    fontSize: this.labelStyles.infoBoxValues.fontSize,
                 };
+
                 const label = new PIXI.BitmapText("", textStyle);
                 label.name = 'infoLineText_1';
                 label.x = 5;
                 label.y = 5;
 
-                const infoTextBg = new PIXI.Graphics();
-                infoTextBg.beginFill(this.colors.infoBoxBackground);
-                infoTextBg.alpha = 1;
-                infoTextBg.drawRoundedRect(0, 0, 80, 40, 5);
-                infoTextBg.endFill();
-                let infoTextureBg = this.app.renderer.generateTexture(infoTextBg);
-                let infoTextureBgSprite = new PIXI.Sprite(infoTextureBg);
-                this.infoText.addChild(infoTextureBgSprite);
+                let textStyle2 = {
+                    fontName: "IBText",
+                    fontSize: this.labelStyles.infoBoxText.fontSize,
+                    maxWidth: 150
+                };
+
+                const labelInfo = new PIXI.BitmapText("", textStyle2);
+                labelInfo.name = 'infoLineText_2';
+                labelInfo.x = 5;
+                labelInfo.y = 35;
+                this.createInfoTextResizableBackground(80,40,8);
                 this.infoText.addChild(label);
+                this.infoText.addChild(labelInfo);
 
                 const infoPoint = new PIXI.Graphics();
                 infoPoint.lineStyle(2, this.colors.infoPoint, 1);
@@ -522,6 +558,84 @@
                 this.infoGraphics.addChild(this.infoPointSprite);
                 this.infoGraphics.addChild(this.infoText);
             },
+            createInfoTextResizableBackground(width, height, radius){
+                const corner = new PIXI.Graphics();
+                corner.beginFill(this.colors.infoBoxBackground);
+                corner.drawCircle(radius, radius, radius);
+                corner.drawRect(radius, 0, radius, radius);
+                corner.drawRect(0,radius, 2*radius, radius);
+                corner.endFill();
+                const center = new PIXI.Graphics();
+                center.beginFill(this.colors.infoBoxBackground);
+                center.drawRect(0,0, width-4*radius, height);
+                center.endFill();
+                const side = new PIXI.Graphics();
+                side.beginFill(this.colors.infoBoxBackground);
+                side.drawRect(0,0, 2*radius, height-4*radius);
+                side.endFill();
+                const cornerTexture = this.app.renderer.generateTexture(corner);
+                const cornerLTSprite = new PIXI.Sprite(cornerTexture);
+                cornerLTSprite.x=0;
+                cornerLTSprite.y=0;
+                cornerLTSprite.name='cornerLT';
+                const cornerLBSprite = new PIXI.Sprite(cornerTexture);
+                cornerLBSprite.anchor.set(0.5);
+                cornerLBSprite.x=radius;
+                cornerLBSprite.y=height-radius;
+                cornerLBSprite.angle = -90;
+                cornerLBSprite.name='cornerLB';
+                const cornerRTSprite = new PIXI.Sprite(cornerTexture);
+                cornerRTSprite.anchor.set(0.5);
+                cornerRTSprite.x=width-radius;
+                cornerRTSprite.y=radius;
+                cornerRTSprite.angle = 90;
+                cornerRTSprite.name='cornerRT';
+                const cornerRBSprite = new PIXI.Sprite(cornerTexture);
+                cornerRBSprite.anchor.set(0.5);
+                cornerRBSprite.x=width-radius;
+                cornerRBSprite.y=height-radius;
+                cornerRBSprite.angle = 180;
+                cornerRBSprite.name='cornerRB';
+                const centerTexture = this.app.renderer.generateTexture(center);
+                const centerSprite = new PIXI.Sprite(centerTexture);
+                centerSprite.x=radius*2;
+                centerSprite.y=0;
+                centerSprite.name='center';
+                const sideTexture = this.app.renderer.generateTexture(side);
+                const sideLSprite = new PIXI.Sprite(sideTexture);
+                sideLSprite.x=0;
+                sideLSprite.y=2*radius;
+                sideLSprite.name='sideL';
+                const sideRSprite = new PIXI.Sprite(sideTexture);
+                sideRSprite.x=width-2*radius;
+                sideRSprite.y=2*radius;
+                sideRSprite.name='sideR';
+                this.infoText.addChild(cornerLTSprite);
+                this.infoText.addChild(cornerLBSprite);
+                this.infoText.addChild(cornerRTSprite);
+                this.infoText.addChild(cornerRBSprite);
+                this.infoText.addChild(centerSprite);
+                this.infoText.addChild(sideLSprite);
+                this.infoText.addChild(sideRSprite);
+            },
+            resizeInfoBackground(width, height){
+                const cornerLB = this.infoText.getChildByName('cornerLB');
+                const cornerRT = this.infoText.getChildByName('cornerRT');
+                const cornerRB = this.infoText.getChildByName('cornerRB');
+                const center = this.infoText.getChildByName('center');
+                const sideL = this.infoText.getChildByName('sideL');
+                const sideR = this.infoText.getChildByName('sideR');
+                const radius = cornerLB.height/2;
+                cornerLB.y = height-radius;
+                cornerRT.x = width-radius;
+                cornerRB.x = width-radius;
+                cornerRB.y = height-radius;
+                center.width = width - 4*radius;
+                center.height = height;
+                sideL.height = height - 4*radius;
+                sideR.x = width-2*radius;
+                sideR.height = height - 4*radius;
+            },
             onMoveInfographics(e){
                 if(!_.isNil(e.target) && e.target.name === this.lineGraphics.name && !_.isNil(this.globalsParams)){
                     let x_coord = e.data.global.x;
@@ -530,7 +644,16 @@
                         return (point.x - Xmin)*Xfactor>=x_coord - this.mainChartPadding.left
                     });
                     const line = this.infoText.getChildByName('infoLineText_1');
-                    line.text = `X: ${this.currentPoints[leftIndex].x} \nY: ${(this.currentPoints[leftIndex].y).toFixed(2)}`;
+                    line.text = `${this.currentPoints[leftIndex].x} \n${(this.currentPoints[leftIndex].y).toFixed(2)}`;
+                    const lineInfo = this.infoText.getChildByName('infoLineText_2');
+                    if(!_.isNil(this.currentPoints[leftIndex].info)){
+                        lineInfo.visible = true;
+                        lineInfo.text = this.currentPoints[leftIndex].info;
+                        this.resizeInfoBackground(lineInfo.textWidth+10, 40 + lineInfo.textHeight);
+                    }else{
+                        this.resizeInfoBackground(80, 40);
+                        lineInfo.visible = false
+                    }
                     const X = (this.currentPoints[leftIndex].x- Xmin)*Xfactor;
                     const Y = this.viewHeight() - (this.currentPoints[leftIndex].y-Ymin)*Yfactor;
 
