@@ -37,8 +37,9 @@
             miniChartHorizontalPickerWidth: 10,
             miniChartMinimumSelection: 10,
             miniChartMaxPints: 100,
-            chartHeight: 400,
+            chartHeight: 600,
             minChartHeight: 100,
+            isDateTime: true,
             infoText: null,
             points: [],
             currentPoints: [],
@@ -99,13 +100,13 @@
             this.timeLabelsContainer.y = this.viewHeight() + this.mainChartPadding.top;
             this.valuesLabelsContainer = new PIXI.Container();
             this.valuesLabelsContainer.y = this.mainChartPadding.top;
-            this.app.stage.addChild(this.valuesLabelsContainer);
             this.chartContainer = new PIXI.Container();
             this.app.stage.addChild(this.chartContainer);
             this.horlineGraphics = new PIXI.Graphics();
             this.horlineGraphics.x = this.mainChartPadding.left;
             this.horlineGraphics.y = this.mainChartPadding.top;
             this.chartContainer.addChild(this.horlineGraphics);
+            this.app.stage.addChild(this.valuesLabelsContainer);
             this.lineGraphics = new PIXI.Graphics();
             this.lineGraphics.x = this.mainChartPadding.left;
             this.lineGraphics.y = this.mainChartPadding.top;
@@ -261,7 +262,7 @@
                 const fullWidth = this.app.renderer.width/this.app.renderer.resolution-this.miniChartPadding.left - this.miniChartPadding.right;
                 const Xfactor = fullWidth/(Xmax - Xmin);
                 _.forEach(this.points, (point, index)=>{
-                    const x_coord = point.x*Xfactor;
+                    const x_coord = (point.x-Xmin)*Xfactor;
                     const y_coord = miniChartHeight - (point.y-Ymin)*Yfactor;
                     if(index === 0) {
                         this.miniLineGraphics.moveTo(x_coord,y_coord)
@@ -496,16 +497,16 @@
                 const leftX = this.leftSide.position.x+this.miniChartHorizontalPickerWidth;
                 const rightX = this.rightSide.position.x;
                 const leftIndex = _.findIndex(this.points, point =>{
-                    return point.x*Xfactor + this.miniChartPadding.left>=leftX
+                    return (point.x - Xmin)*Xfactor + this.miniChartPadding.left>=leftX
                 });
                 let rightIndex  = _.findIndex(this.points, point =>{
-                    return point.x*Xfactor  + this.miniChartPadding.left>=rightX
+                    return (point.x - Xmin)*Xfactor  + this.miniChartPadding.left>=rightX
                 });
                 let leftY;
                 if(leftIndex === 0){
                     leftY = this.points[0].y
                 }else{
-                    const lambda = ((leftX - this.miniChartPadding.left)/Xfactor - this.points[leftIndex - 1].x)/(this.points[leftIndex].x - (leftX-this.miniChartPadding.left)/Xfactor);
+                    const lambda = ((leftX - this.miniChartPadding.left)/Xfactor + Xmin - this.points[leftIndex - 1].x)/(this.points[leftIndex].x - (leftX-this.miniChartPadding.left)/Xfactor);
                     leftY = Math.round((this.points[leftIndex - 1].y + lambda*this.points[leftIndex].y)/(1+lambda));
                 }
                 let rightY;
@@ -513,13 +514,13 @@
                     rightY = this.points[this.points.length].y
                 }else{
                     if(rightIndex <0) rightIndex = this.points.length - 1;
-                    const lambda = ((rightX - this.miniChartPadding.left)/Xfactor - this.points[rightIndex - 1].x)/(this.points[rightIndex].x - (rightX-this.miniChartPadding.left)/Xfactor);
+                    const lambda = ((rightX - this.miniChartPadding.left)/Xfactor + Xmin - this.points[rightIndex - 1].x)/(this.points[rightIndex].x - (rightX-this.miniChartPadding.left)/Xfactor);
                     rightY = Math.round((this.points[rightIndex - 1].y + lambda*this.points[rightIndex].y)/(1+lambda));
                     if(_.isNaN(rightY)) rightY = this.points[rightIndex].y
                 }
                 this.currentPoints = this.points.slice(leftIndex, rightIndex);
-                const leftPoint = {x: Math.round((leftX - this.miniChartPadding.left)/Xfactor), y: leftY};
-                const rightPoint = {x: Math.round((rightX - this.miniChartPadding.left)/Xfactor), y: rightY};
+                const leftPoint = {x: Math.round((leftX - this.miniChartPadding.left)/Xfactor + Xmin), y: leftY};
+                const rightPoint = {x: Math.round((rightX - this.miniChartPadding.left)/Xfactor + Xmin), y: rightY};
                 this.currentPoints = [{x: leftPoint.x, y: leftPoint.y, color: 'white', shape: 'none'},...this.currentPoints, {x: rightPoint.x, y: rightPoint.y, color: 'white', shape: 'none'}]
             },
             viewHeight(){
