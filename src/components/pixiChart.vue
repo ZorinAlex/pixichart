@@ -142,7 +142,7 @@
                 //     points.push({x: i*5, y: Math.tan(Math.random())*Math.random()*150, color: this.colors.point, shape: 'circle', size:4, info: "BUY ME A NUGGET"});
                 // }
                 // this.addPointsArray(points);
-                let xc = 0;
+                let xc = 100000;
                 for(let i = 0; i < 500; i++){
                     setTimeout(()=>{
                         this.addPoint(xc, Math.tan(Math.random())*Math.random()*150, this.colors.point, 'circle', 4, "BUY ME A NUGGET")
@@ -423,7 +423,7 @@
                         const {Xmin, Xmax} = this.minMaxXData();
                         const fullWidth = this.app.renderer.width/this.app.renderer.resolution - this.miniChartPadding.left - this.miniChartPadding.right;
                         const Xfactor = fullWidth/(Xmax - Xmin);
-                        const X_position = X_coord*Xfactor+this.miniChartPadding.left - this.miniChartHorizontalPickerWidth;
+                        const X_position = (X_coord - Xmin)*Xfactor+this.miniChartPadding.left - this.miniChartHorizontalPickerWidth;
                     if((X_right - X_position )> 100){
                         this.leftSideBg.width = this.app.renderer.width/this.app.renderer.resolution + this.miniChartHorizontalPickerWidth/2;
                         this.leftSide.x = X_position;
