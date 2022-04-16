@@ -32,7 +32,7 @@
             dragSpriteStartX: 0,
             maxHorizontalLabels: 20,
             horizontalLines: 5,
-            mainChartPadding: {top: 20, bottom: 50, left: 25, right: 25},
+            mainChartPadding: {top: 20, bottom: 80, left: 25, right: 25},
             miniChartPadding: {top: 5, bottom: 5, left: 25, right: 25},
             miniChartHorizontalPickerWidth: 10,
             miniChartMinimumSelection: 10,
@@ -40,6 +40,7 @@
             chartHeight: 600,
             minChartHeight: 100,
             isDateTime: true,
+            dateTimeFormat: {locales: 'en-US', options: {dateStyle:'short', timeStyle:'short'}},
             infoText: null,
             points: [],
             currentPoints: [],
@@ -142,11 +143,11 @@
                 //     points.push({x: i*5, y: Math.tan(Math.random())*Math.random()*150, color: this.colors.point, shape: 'circle', size:4, info: "BUY ME A NUGGET"});
                 // }
                 // this.addPointsArray(points);
-                let xc = 100000;
+                //let xc = 100000;
                 for(let i = 0; i < 500; i++){
                     setTimeout(()=>{
-                        this.addPoint(xc, Math.tan(Math.random())*Math.random()*150, this.colors.point, 'circle', 4, "BUY ME A NUGGET")
-                        xc+=50 * Math.random()+50;
+                        this.addPoint(Date.now(), Math.tan(Math.random())*Math.random()*150, this.colors.point, 'circle', 4, "BUY ME A NUGGET")
+                        //xc+=50 * Math.random()+50;
                     }, 50+i)
                 }
             },
@@ -155,12 +156,12 @@
                     fill: this.colors.texts,
                     fontSize: this.labelStyles.horizontalLabels.fontSize*2,
                     fontWeight: this.labelStyles.horizontalLabels.fontWeight,
-                });
+                },{chars: [['a', 'z'], ['0', '9'], ['A', 'Z'], '.:- ']});
                 PIXI.BitmapFont.from("VLFont", {
                     fill: this.colors.texts,
                     fontSize: this.labelStyles.horizontalLabels.fontSize*2,
                     fontWeight: this.labelStyles.horizontalLabels.fontWeight,
-                });
+                },{chars: [['a', 'z'], ['0', '9'], ['A', 'Z'], '.:- /']});
                 PIXI.BitmapFont.from("IBValues", {
                     fill: this.colors.infoBoxValues,
                     fontSize: this.labelStyles.infoBoxValues.fontSize*2,
@@ -312,6 +313,7 @@
                         const label = new PIXI.BitmapText("", textStyle);
                         label.x = -100;
                         label.y = 5;
+                        if(this.isDateTime) label.y = 10;
                         label.anchor.set(1, 1);
                         label.rotation = -Math.PI /2;
                         this.timeLabelsContainer.addChild(label);
@@ -322,7 +324,13 @@
                     const spaceFactor = Math.ceil(this.currentPoints.length / this.maxHorizontalLabels);
                     _.forEach(_.range(0, this.maxHorizontalLabels+1), index =>{
                         if(this.currentPoints.length>index*spaceFactor){
-                            this.timeLabelsContainer.children[index].text = (this.currentPoints[index*spaceFactor].x).toFixed(0);
+                            if(this.isDateTime){
+                                if(index===0) this.timeLabelsContainer.children[index].visible = false;
+                                this.timeLabelsContainer.children[index].angle = -45;
+                                this.timeLabelsContainer.children[index].text = new Date(this.currentPoints[index*spaceFactor].x).toLocaleString(this.dateTimeFormat.locales, this.dateTimeFormat.options);
+                            }else{
+                                this.timeLabelsContainer.children[index].text = (this.currentPoints[index*spaceFactor].x).toFixed(0);
+                            }
                             this.timeLabelsContainer.children[index].x = (this.currentPoints[index*spaceFactor].x - Xmin)*Xfactor + this.mainChartPadding.left+ 7;
                         }else{
                             this.timeLabelsContainer.children[index].x = -100;
@@ -701,7 +709,12 @@
                     let color;
                     if(this.infoBoxColorFollow) color = this.lightenDarkenColor(this.currentPoints[leftIndex].color, -100);
                     const line = this.infoText.getChildByName('infoLineText_1');
-                    line.text = `${this.currentPoints[leftIndex].x.toFixed(2)} \n${(this.currentPoints[leftIndex].y).toFixed(2)}`;
+                    if(this.isDateTime){
+                        line.text = `${new Date(this.currentPoints[leftIndex].x).toLocaleString(this.dateTimeFormat.locales, this.dateTimeFormat.options)} \n${(this.currentPoints[leftIndex].y).toFixed(2)}`;
+                    }else{
+                        line.text = `${this.currentPoints[leftIndex].x.toFixed(2)} \n${(this.currentPoints[leftIndex].y).toFixed(2)}`;
+                    }
+
                     const lineInfo = this.infoText.getChildByName('infoLineText_2');
                     if(!_.isNil(this.currentPoints[leftIndex].info)){
                         lineInfo.visible = true;
