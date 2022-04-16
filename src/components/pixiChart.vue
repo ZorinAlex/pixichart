@@ -142,17 +142,11 @@
                 // }
                 // this.addPointsArray(points);
                 let xc = 0;
-                for(let i = 0; i < 30; i++){
-
+                for(let i = 0; i < 500; i++){
                     setTimeout(()=>{
-                        let points = [];
-                        for(let i = 0; i < 50; i++){
-                            xc = xc+50;
-
-                            points.push({x: xc, y: Math.tan(Math.random())*Math.random()*150, color: this.colors.point, shape: 'circle', size:4, info: "BUY ME A NUGGET"});
-                        }
-                        this.addPointsArray(points);
-                    }, 1000 * i)
+                        this.addPoint(xc, Math.tan(Math.random())*Math.random()*150, this.colors.point, 'circle', 4, "BUY ME A NUGGET")
+                        xc+=50 * Math.random()+50;
+                    }, 50+i)
                 }
             },
             addFonts(){
@@ -194,13 +188,17 @@
                 if(!_.isNumber(color)) color = PIXI.utils.string2hex(color);
                 this.clearContainers();
                 this.points.push({x,y,color,shape,size, info});
-                this.drawMiniLineChart();
-                this.addTimePickers();
-                this.calcSelectedRegion();
-                this.drawLineChart();
-                this.drawHorizontalAxes();
-                this.addValueLabels();
-                this.addTimeLabels();
+                if(this.points.length>2){
+                    this.drawMiniLineChart();
+                    this.addTimePickers();
+                    this.moveTimePickers();
+                    this.calcSelectedRegion();
+                    this.drawLineChart();
+                    this.drawHorizontalAxes();
+                    this.addValueLabels();
+                    this.addTimeLabels();
+                }
+
             },
             addPointsArray(pointsArray){
                 if(!_.isNumber(pointsArray[0].color)) pointsArray =
@@ -514,6 +512,7 @@
                 if(rightIndex === this.points.length){
                     rightY = this.points[this.points.length].y
                 }else{
+                    if(rightIndex <0) rightIndex = this.points.length - 1;
                     const lambda = ((rightX - this.miniChartPadding.left)/Xfactor - this.points[rightIndex - 1].x)/(this.points[rightIndex].x - (rightX-this.miniChartPadding.left)/Xfactor);
                     rightY = Math.round((this.points[rightIndex - 1].y + lambda*this.points[rightIndex].y)/(1+lambda));
                     if(_.isNaN(rightY)) rightY = this.points[rightIndex].y
