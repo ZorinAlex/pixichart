@@ -713,8 +713,12 @@
                     }
                     const X = (this.currentPoints[leftIndex].x- Xmin)*Xfactor;
                     const Y = this.viewHeight() - (this.currentPoints[leftIndex].y-Ymin)*Yfactor;
-
-                    this.infoText.x = X + 10;
+                    if(X > this.app.renderer.width/this.app.renderer.resolution - this.mainChartPadding.right - lineInfo.textWidth-20){
+                        const X_text = X - lineInfo.textWidth-30;
+                        this.infoText.x = X_text + 10;
+                    }else {
+                        this.infoText.x = X + 10;
+                    }
                     this.infoText.y = Y - 20;
                     this.infoPointSprite.x = X;
                     this.infoPointSprite.y = Y;
