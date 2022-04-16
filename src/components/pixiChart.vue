@@ -42,7 +42,8 @@
             points: [],
             currentPoints: [],
             colors: null,
-            labelStyles: null
+            labelStyles: null,
+            infoBoxColorFollow: true
         }),
         mounted() {
             this.colors = {
@@ -171,6 +172,7 @@
                 this.linePointsGraphics.clear();
             },
             addPoint(x, y, color, shape, size, info){
+                if(!_.isNumber(color)) color = PIXI.utils.string2hex(color);
                 this.clearContainers();
                 this.points.push({x,y,color,shape,size});
                 this.drawMiniLineChart();
@@ -182,6 +184,11 @@
                 this.addTimeLabels();
             },
             addPointsArray(pointsArray){
+                if(!_.isNumber(pointsArray[0].color)) pointsArray =
+                    _.map(pointsArray, (point)=> {
+                        point.color = PIXI.utils.string2hex(point.color);
+                        return point
+                    });
                 this.clearContainers();
                 this.points.push(...pointsArray);
                 this.drawMiniLineChart();
@@ -505,10 +512,10 @@
                 return {Xmin, Xmax}
             },
             addInfoGraphics(){
-                const lineGraphics = new PIXI.Graphics;
-                lineGraphics.lineStyle(2, 0xFFFFFF, 1);
-                lineGraphics.moveTo(0, 0);
-                lineGraphics.lineTo(0, this.viewHeight());
+                //const lineGraphics = new PIXI.Graphics;
+                // lineGraphics.lineStyle(2, 0xFFFFFF, 1);
+                // lineGraphics.moveTo(0, 0);
+                // lineGraphics.lineTo(0, this.viewHeight());
                 this.lineGraphics.interactive = true;
                 this.lineGraphics.hitArea = new PIXI.Rectangle(0, 0, this.viewWidth(), this.viewHeight());
                 this.lineGraphics.name = "lineGraphics";
@@ -539,15 +546,17 @@
                 this.infoText.addChild(label);
                 this.infoText.addChild(labelInfo);
 
+                let color = this.colors.infoPoint;
+                if(this.infoBoxColorFollow) color = 0xFFFFFF;
                 const infoPoint = new PIXI.Graphics();
-                infoPoint.lineStyle(2, this.colors.infoPoint, 1);
+                infoPoint.lineStyle(2, color, 1);
                 infoPoint.beginFill(0,0);
                 infoPoint.drawCircle(0, 0, 6);
                 infoPoint.endFill();
-                // infoPoint.lineStyle(0);
-                // infoPoint.beginFill(this.colors.infoPoint, 1);
-                // infoPoint.drawCircle(0, 0, 3);
-                // infoPoint.endFill();
+                infoPoint.lineStyle(0);
+                infoPoint.beginFill(color, 1);
+                infoPoint.drawCircle(0, 0, 3);
+                infoPoint.endFill();
 
 
                 let infoPointTexture = this.app.renderer.generateTexture(infoPoint);
@@ -559,18 +568,20 @@
                 this.infoGraphics.addChild(this.infoText);
             },
             createInfoTextResizableBackground(width, height, radius){
+                let color = this.colors.infoBoxBackground;
+                if(this.infoBoxColorFollow) color = 0xFFFFFF;
                 const corner = new PIXI.Graphics();
-                corner.beginFill(this.colors.infoBoxBackground);
+                corner.beginFill(color);
                 corner.drawCircle(radius, radius, radius);
                 corner.drawRect(radius, 0, radius, radius);
                 corner.drawRect(0,radius, 2*radius, radius);
                 corner.endFill();
                 const center = new PIXI.Graphics();
-                center.beginFill(this.colors.infoBoxBackground);
+                center.beginFill(color);
                 center.drawRect(0,0, width-4*radius, height);
                 center.endFill();
                 const side = new PIXI.Graphics();
-                side.beginFill(this.colors.infoBoxBackground);
+                side.beginFill(color);
                 side.drawRect(0,0, 2*radius, height-4*radius);
                 side.endFill();
                 const cornerTexture = this.app.renderer.generateTexture(corner);
@@ -618,7 +629,8 @@
                 this.infoText.addChild(sideLSprite);
                 this.infoText.addChild(sideRSprite);
             },
-            resizeInfoBackground(width, height){
+            resizeInfoBackground(width, height, tint){
+                const cornerLT = this.infoText.getChildByName('cornerLT');
                 const cornerLB = this.infoText.getChildByName('cornerLB');
                 const cornerRT = this.infoText.getChildByName('cornerRT');
                 const cornerRB = this.infoText.getChildByName('cornerRB');
@@ -635,6 +647,15 @@
                 sideL.height = height - 4*radius;
                 sideR.x = width-2*radius;
                 sideR.height = height - 4*radius;
+                if(!_.isNil(tint)){
+                    cornerLT.tint = tint;
+                    cornerLB.tint = tint;
+                    cornerRT.tint = tint;
+                    cornerRB.tint = tint;
+                    center.tint = tint;
+                    sideL.tint = tint;
+                    sideR.tint = tint;
+                }
             },
             onMoveInfographics(e){
                 if(!_.isNil(e.target) && e.target.name === this.lineGraphics.name && !_.isNil(this.globalsParams)){
@@ -643,15 +664,17 @@
                     const leftIndex = _.findIndex(this.currentPoints, point =>{
                         return (point.x - Xmin)*Xfactor>=x_coord - this.mainChartPadding.left
                     });
+                    let color;
+                    if(this.infoBoxColorFollow) color = this.lightenDarkenColor(this.currentPoints[leftIndex].color, -100);
                     const line = this.infoText.getChildByName('infoLineText_1');
                     line.text = `${this.currentPoints[leftIndex].x} \n${(this.currentPoints[leftIndex].y).toFixed(2)}`;
                     const lineInfo = this.infoText.getChildByName('infoLineText_2');
                     if(!_.isNil(this.currentPoints[leftIndex].info)){
                         lineInfo.visible = true;
                         lineInfo.text = this.currentPoints[leftIndex].info;
-                        this.resizeInfoBackground(lineInfo.textWidth+10, 40 + lineInfo.textHeight);
+                        this.resizeInfoBackground(lineInfo.textWidth+10, 40 + lineInfo.textHeight, color);
                     }else{
-                        this.resizeInfoBackground(80, 40);
+                        this.resizeInfoBackground(80, 40, color);
                         lineInfo.visible = false
                     }
                     const X = (this.currentPoints[leftIndex].x- Xmin)*Xfactor;
@@ -662,7 +685,7 @@
                     this.infoPointSprite.x = X;
                     this.infoPointSprite.y = Y;
                     this.infoPointSprite.alpha = 1;
-                    this.infoPointSprite.tint = this.currentPoints[leftIndex].color;
+                    this.infoPointSprite.tint = this.lightenDarkenColor(this.currentPoints[leftIndex].color, -100);
                     this.infoText.alpha = 1;
                 }else{
                     this.infoPointSprite.alpha = 0;
@@ -695,6 +718,27 @@
                 this.centerSide.width = this.rightSide.x - this.leftSide.x - this.miniChartHorizontalPickerWidth;
                 this.leftSideBg.x = this.leftSide.x;
                 this.rightSideBg.x = this.rightSide.x + this.miniChartHorizontalPickerWidth;
+            },
+            lightenDarkenColor(colorCode, amount) {
+                let r = (colorCode >> 16) + amount;
+                if (r > 255) {
+                    r = 255;
+                } else if (r < 0) {
+                    r = 0;
+                }
+                let b = ((colorCode >> 8) & 0x00FF) + amount;
+                if (b > 255) {
+                    b = 255;
+                } else if (b < 0) {
+                    b = 0;
+                }
+                let g = (colorCode & 0x0000FF) + amount;
+                if (g > 255) {
+                    g = 255;
+                } else if (g < 0) {
+                    g = 0;
+                }
+                return '0x' +(g | (b << 8) | (r << 16)).toString(16);
             }
         },
     }
