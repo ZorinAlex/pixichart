@@ -197,8 +197,8 @@
                     this.drawHorizontalAxes();
                     this.addValueLabels();
                     this.addTimeLabels();
+                    this.infoText.alpha = 0;
                 }
-
             },
             addPointsArray(pointsArray){
                 if(!_.isNumber(pointsArray[0].color)) pointsArray =
@@ -211,12 +211,12 @@
                 this.drawMiniLineChart();
                 this.addTimePickers();
                 this.moveTimePickers();
-                // miniChartMaxPints
                 this.calcSelectedRegion();
                 this.drawLineChart();
                 this.drawHorizontalAxes();
                 this.addValueLabels();
                 this.addTimeLabels();
+                this.infoText.alpha = 0;
             },
             drawLineChart(){
                 this.lineGraphics.lineStyle(1, this.colors.line, 1);
@@ -700,19 +700,21 @@
                     let color;
                     if(this.infoBoxColorFollow) color = this.lightenDarkenColor(this.currentPoints[leftIndex].color, -100);
                     const line = this.infoText.getChildByName('infoLineText_1');
-                    line.text = `${this.currentPoints[leftIndex].x} \n${(this.currentPoints[leftIndex].y).toFixed(2)}`;
+                    line.text = `${this.currentPoints[leftIndex].x.toFixed(2)} \n${(this.currentPoints[leftIndex].y).toFixed(2)}`;
                     const lineInfo = this.infoText.getChildByName('infoLineText_2');
                     if(!_.isNil(this.currentPoints[leftIndex].info)){
                         lineInfo.visible = true;
                         lineInfo.text = this.currentPoints[leftIndex].info;
-                        this.resizeInfoBackground(lineInfo.textWidth+10, 40 + lineInfo.textHeight, color);
+                        const maxWidth = _.max([lineInfo.textWidth, line.textWidth]);
+                        this.resizeInfoBackground(maxWidth+10, 40 + lineInfo.textHeight, color);
                     }else{
-                        this.resizeInfoBackground(80, 40, color);
+                        this.resizeInfoBackground(line.textWidth+10, 40, color);
                         lineInfo.visible = false
                     }
                     const X = (this.currentPoints[leftIndex].x- Xmin)*Xfactor;
                     const Y = this.viewHeight() - (this.currentPoints[leftIndex].y-Ymin)*Yfactor;
-                    if(X > this.app.renderer.width/this.app.renderer.resolution - this.mainChartPadding.right - lineInfo.textWidth-20){
+                    const maxWidth = _.max([lineInfo.textWidth, line.textWidth]);
+                    if(X > this.app.renderer.width/this.app.renderer.resolution - this.mainChartPadding.right - maxWidth-20){
                         const X_text = X - lineInfo.textWidth-30;
                         this.infoText.x = X_text + 10;
                     }else {
