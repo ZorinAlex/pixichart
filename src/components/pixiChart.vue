@@ -8,6 +8,79 @@
     import * as _ from 'lodash';
     export default {
         name: "pixiChart",
+        props: {
+            maxHorizontalLabels: {type: Number, default: 20},
+            horizontalLines: {type: Number, default: 5},
+            miniChartHorizontalPickerWidth: {type: Number, default: 10},
+            miniChartMinimumSelection: {type: Number, default: 10},
+            miniChartMaxPints: {type: Number, default: 100},
+            chartHeight: {type: Number, default: 600},
+            miniChartHeight: {type: Number, default: 100},
+            mainChartPadding: {
+                type: Object,
+                default() {
+                    return {top: 20, bottom: 80, left: 25, right: 25}
+                }
+            },
+            miniChartPadding: {
+                type: Object,
+                default() {
+                    return {top: 5, bottom: 5, left: 25, right: 25}
+                }
+            },
+            isDateTime: {type: Boolean, default: true},
+            dateTimeFormat: {
+                type: Object,
+                default(){
+                    return {locales: 'en-US', options: {dateStyle:'short', timeStyle:'short'}}
+                }
+            },
+            colors: {
+                type: Object,
+                default(){
+                    return {
+                        background: '#0C0C0C',
+                        line: '#DBDBDB',
+                        point: '#7EDDA6',
+                        horizontalLines: '#262626',
+                        texts: '#a8a8a8',
+                        infoBoxBackground: '#219653',
+                        infoBoxText: '#cccccc',
+                        infoBoxValues: '#FFFFFF',
+                        infoPoint: '#219653',
+                        miniChartPickerLines: '#BAF6D3',
+                        miniChartSideBackground: '#121212',
+                        miniChartCenterBackground: '#219653',
+                        timePickerColor: '#219653',
+                    }
+                }
+            },
+            labelStyles: {
+                type: Object,
+                default(){
+                    return {
+                        fontFamily: 'Roboto',
+                        horizontalLabels: {
+                            fontSize: 11,
+                            fontWeight: 'normal',
+                        },
+                        verticalLabels: {
+                            fontSize: 11,
+                            fontWeight: 'normal',
+                        },
+                        infoBoxValues: {
+                            fontSize: 13,
+                            fontWeight: 'normal',
+                        },
+                        infoBoxText: {
+                            fontSize: 11,
+                            fontWeight: 'normal',
+                        }
+                    }
+                }
+            },
+            infoBoxColorFollow: {type: Boolean, default: true},
+        },
         data: ()=>({
             app: null,
             chartContainer: null,
@@ -30,67 +103,20 @@
             rightPoint: null,
             dragStartPosition: null,
             dragSpriteStartX: 0,
-            maxHorizontalLabels: 20,
-            horizontalLines: 5,
-            mainChartPadding: {top: 20, bottom: 80, left: 25, right: 25},
-            miniChartPadding: {top: 5, bottom: 5, left: 25, right: 25},
-            miniChartHorizontalPickerWidth: 10,
-            miniChartMinimumSelection: 10,
-            miniChartMaxPints: 100,
-            chartHeight: 600,
-            minChartHeight: 100,
-            isDateTime: true,
-            dateTimeFormat: {locales: 'en-US', options: {dateStyle:'short', timeStyle:'short'}},
             infoText: null,
             points: [],
             currentPoints: [],
-            colors: null,
-            labelStyles: null,
-            infoBoxColorFollow: true,
+            colorsHex: {},
             isTimeMoved: false
         }),
         mounted() {
-            this.colors = {
-                background: '#0C0C0C',
-                line: '#DBDBDB',
-                point: '#7EDDA6',
-                horizontalLines: '#262626',
-                texts: '#a8a8a8',
-                infoBoxBackground: '#219653',
-                infoBoxText: '#cccccc',
-                infoBoxValues: '#FFFFFF',
-                infoPoint: '#219653',
-                miniChartPickerLines: '#BAF6D3',
-                miniChartSideBackground: '#121212',
-                miniChartCenterBackground: '#219653',
-                timePickerColor: '#219653',
-            };
-            this.labelStyles = {
-                fontFamily: 'Roboto',
-                horizontalLabels: {
-                    fontSize: 11,
-                    fontWeight: 'normal',
-                },
-                verticalLabels: {
-                    fontSize: 11,
-                    fontWeight: 'normal',
-                },
-                infoBoxValues: {
-                    fontSize: 13,
-                    fontWeight: 'normal',
-                },
-                infoBoxText: {
-                    fontSize: 11,
-                    fontWeight: 'normal',
-                }
-            };
             for (let property in this.colors) {
-                this.colors[property] = PIXI.utils.string2hex(this.colors[property])
+                this.colorsHex[property] = PIXI.utils.string2hex(this.colors[property])
             }
             //for devtools
             window.PIXI = PIXI;
             //
-            this.app = new PIXI.Application({ antialias: true, transparent: false, backgroundColor: this.colors.background, resolution: 1.25});
+            this.app = new PIXI.Application({ antialias: true, transparent: false, backgroundColor: this.colorsHex.background, resolution: 1.25});
             window.addEventListener('resize', this.onDeviceScreenResize);
             this.$el.appendChild(this.app.view);
             this.app.renderer.view.style.display = "block";
@@ -124,10 +150,10 @@
             this.miniLineChartContainer = new PIXI.Container();
             this.app.stage.addChild(this.miniLineChartContainer);
             this.miniLineChartContainer.x = this.miniChartPadding.left;
-            this.miniLineChartContainer.y = this.chartHeight - this.minChartHeight - this.miniChartPadding.top;
+            this.miniLineChartContainer.y = this.chartHeight - this.miniChartHeight - this.miniChartPadding.top;
             this.miniLineGraphics = new PIXI.Graphics();
             this.miniLineChartPickerContainer= new PIXI.Container();
-            this.miniLineChartPickerContainer.y = this.chartHeight - this.minChartHeight*1.5;
+            this.miniLineChartPickerContainer.y = this.chartHeight - this.miniChartHeight*1.5;
             this.app.stage.addChild(this.miniLineChartPickerContainer);
             this.miniLinePickerGraphics = new PIXI.Graphics();
             this.globalsParams = null;
@@ -146,29 +172,29 @@
                 //let xc = 100000;
                 for(let i = 0; i < 1000; i++){
                     setTimeout(()=>{
-                        this.addPoint(Date.now(), Math.tan(Math.random())*Math.random()*150, this.colors.point, 'circle', 4, "BUY ME A NUGGET")
+                        this.addPoint(Date.now(), Math.tan(Math.random())*Math.random()*150, this.colorsHex.point, 'circle', 4, "BUY ME A NUGGET")
                         //xc+=50 * Math.random()+50;
                     }, 50+i)
                 }
             },
             addFonts(){
                 PIXI.BitmapFont.from("HLFont", {
-                    fill: this.colors.texts,
+                    fill: this.colorsHex.texts,
                     fontSize: this.labelStyles.horizontalLabels.fontSize*2,
                     fontWeight: this.labelStyles.horizontalLabels.fontWeight,
                 },{chars: [['a', 'z'], ['0', '9'], ['A', 'Z'], '.:- ']});
                 PIXI.BitmapFont.from("VLFont", {
-                    fill: this.colors.texts,
+                    fill: this.colorsHex.texts,
                     fontSize: this.labelStyles.horizontalLabels.fontSize*2,
                     fontWeight: this.labelStyles.horizontalLabels.fontWeight,
                 },{chars: [['a', 'z'], ['0', '9'], ['A', 'Z'], '.:- /']});
                 PIXI.BitmapFont.from("IBValues", {
-                    fill: this.colors.infoBoxValues,
+                    fill: this.colorsHex.infoBoxValues,
                     fontSize: this.labelStyles.infoBoxValues.fontSize*2,
                     fontWeight: this.labelStyles.infoBoxValues.fontWeight,
                 }, {chars: [['a', 'z'], ['0', '9'], ['A', 'Z'], '.:- /']});
                 PIXI.BitmapFont.from("IBText", {
-                    fill: this.colors.infoBoxText,
+                    fill: this.colorsHex.infoBoxText,
                     fontSize: this.labelStyles.infoBoxValues.fontSize*2,
                     fontWeight: this.labelStyles.infoBoxValues.fontWeight,
                 }, {chars: [['a', 'z'], ['0', '9'], ['A', 'Z'], '.:- /']});
@@ -221,7 +247,7 @@
                 this.infoText.alpha = 0;
             },
             drawLineChart(){
-                this.lineGraphics.lineStyle(1, this.colors.line, 1);
+                this.lineGraphics.lineStyle(1, this.colorsHex.line, 1);
                 const {Ymin, Ymax} = this.minMaxYDataCurrent();
                 const {Xmin, Xmax} = this.minMaxXDataCurrent();
                 const Yfactor = this.viewHeight()/(Ymax - Ymin);
@@ -255,10 +281,10 @@
                 this.linePointsGraphics.endFill();
             },
             drawMiniLineChart(){
-                this.miniLineGraphics.lineStyle(1, this.colors.line, 1);
+                this.miniLineGraphics.lineStyle(1, this.colorsHex.line, 1);
                 const {Ymin, Ymax} = this.minMaxYData();
                 const {Xmin, Xmax} = this.minMaxXData();
-                const miniChartHeight = this.minChartHeight - this.miniChartPadding.top - this.miniChartPadding.bottom;
+                const miniChartHeight = this.miniChartHeight - this.miniChartPadding.top - this.miniChartPadding.bottom;
                 const Yfactor = miniChartHeight/(Ymax - Ymin);
                 const fullWidth = this.app.renderer.width/this.app.renderer.resolution-this.miniChartPadding.left - this.miniChartPadding.right;
                 const Xfactor = fullWidth/(Xmax - Xmin);
@@ -275,7 +301,7 @@
             },
             drawHorizontalAxes(){
                 const horizontalLineStep = this.viewHeight()/this.horizontalLines;
-                this.horlineGraphics.lineStyle(1, this.colors.horizontalLines, 1);
+                this.horlineGraphics.lineStyle(1, this.colorsHex.horizontalLines, 1);
                 _.forEach(_.range(0, this.horizontalLines+1), line =>{
                     this.horlineGraphics.moveTo(0,this.viewHeight() -  horizontalLineStep * line);
                     this.horlineGraphics.lineTo(this.viewWidth(),this.viewHeight() - horizontalLineStep * line);
@@ -340,16 +366,16 @@
             },
             addTimePickers(){
                 if(_.isNil(this.miniLineChartPickerContainer.getChildByName('left'))){
-                    const miniChartHeight = this.minChartHeight - this.miniChartPadding.top - this.miniChartPadding.bottom;
+                    const miniChartHeight = this.miniChartHeight - this.miniChartPadding.top - this.miniChartPadding.bottom;
 
                     this.miniLinePickerGraphics.lineStyle(0);
-                    this.miniLinePickerGraphics.beginFill(this.colors.timePickerColor);
+                    this.miniLinePickerGraphics.beginFill(this.colorsHex.timePickerColor);
                     this.miniLinePickerGraphics.drawRoundedRect(0, 10, this.miniChartHorizontalPickerWidth, miniChartHeight-20, this.miniChartHorizontalPickerWidth/3);
                     this.miniLinePickerGraphics.endFill();
-                    this.miniLinePickerGraphics.lineStyle(2, this.colors.infoBoxBackground, 1);
+                    this.miniLinePickerGraphics.lineStyle(2, this.colorsHex.infoBoxBackground, 1);
                     this.miniLinePickerGraphics.moveTo(this.miniChartHorizontalPickerWidth/2,0);
                     this.miniLinePickerGraphics.lineTo(this.miniChartHorizontalPickerWidth/2,miniChartHeight);
-                    this.miniLinePickerGraphics.lineStyle(1, this.colors.miniChartPickerLines, 1);
+                    this.miniLinePickerGraphics.lineStyle(1, this.colorsHex.miniChartPickerLines, 1);
                     this.miniLinePickerGraphics.moveTo(this.miniChartHorizontalPickerWidth/2-1,miniChartHeight/2-10);
                     this.miniLinePickerGraphics.lineTo(this.miniChartHorizontalPickerWidth/2-1,miniChartHeight/2+10);
                     this.miniLinePickerGraphics.moveTo(this.miniChartHorizontalPickerWidth/2+1,miniChartHeight/2-10);
@@ -380,7 +406,7 @@
                     this.rightSide = rightSide;
 
                     this.miniLinePickerGraphics.clear();
-                    this.miniLinePickerGraphics.beginFill(this.colors.miniChartSideBackground);
+                    this.miniLinePickerGraphics.beginFill(this.colorsHex.miniChartSideBackground);
                     this.miniLinePickerGraphics.drawRect(0, 0, this.miniChartHorizontalPickerWidth, miniChartHeight);
                     this.miniLinePickerGraphics.endFill();
                     texture = this.app.renderer.generateTexture(this.miniLinePickerGraphics);
@@ -400,7 +426,7 @@
                     this.rightSideBg = rightSideBg;
 
                     this.miniLinePickerGraphics.clear();
-                    this.miniLinePickerGraphics.beginFill(this.colors.miniChartCenterBackground);
+                    this.miniLinePickerGraphics.beginFill(this.colorsHex.miniChartCenterBackground);
                     this.miniLinePickerGraphics.drawRect(0, 0, 10, miniChartHeight);
                     this.miniLinePickerGraphics.endFill();
                     texture = this.app.renderer.generateTexture(this.miniLinePickerGraphics);
@@ -532,7 +558,7 @@
                 this.currentPoints = [{x: leftPoint.x, y: leftPoint.y, color: 'white', shape: 'none'},...this.currentPoints, {x: rightPoint.x, y: rightPoint.y, color: 'white', shape: 'none'}]
             },
             viewHeight(){
-                return this.chartHeight - this.mainChartPadding.top - this.mainChartPadding.bottom - this.minChartHeight;
+                return this.chartHeight - this.mainChartPadding.top - this.mainChartPadding.bottom - this.miniChartHeight;
             },
             viewWidth(){
                 return this.app.renderer.width/this.app.renderer.resolution - this.mainChartPadding.left - this.mainChartPadding.right;
@@ -588,7 +614,7 @@
                 this.infoText.addChild(label);
                 this.infoText.addChild(labelInfo);
 
-                let color = this.colors.infoPoint;
+                let color = this.colorsHex.infoPoint;
                 if(this.infoBoxColorFollow) color = 0xFFFFFF;
                 const infoPoint = new PIXI.Graphics();
                 infoPoint.lineStyle(2, color, 1);
@@ -610,7 +636,7 @@
                 this.infoGraphics.addChild(this.infoText);
             },
             createInfoTextResizableBackground(width, height, radius){
-                let color = this.colors.infoBoxBackground;
+                let color = this.colorsHex.infoBoxBackground;
                 if(this.infoBoxColorFollow) color = 0xFFFFFF;
                 const corner = new PIXI.Graphics();
                 corner.beginFill(color);

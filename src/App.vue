@@ -1,6 +1,6 @@
 <template>
   <div>
-    <pixi-chart/>
+    <pixi-chart />
   </div>
 </template>
 
