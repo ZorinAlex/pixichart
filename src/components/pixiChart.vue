@@ -80,6 +80,7 @@
                 }
             },
             infoBoxColorFollow: {type: Boolean, default: true},
+            pointsData: {type: Array}
         },
         data: ()=>({
             app: null,
@@ -107,7 +108,8 @@
             points: [],
             currentPoints: [],
             colorsHex: {},
-            isTimeMoved: false
+            isTimeMoved: false,
+            pointsDataUpdateLength: 0
         }),
         mounted() {
             for (let property in this.colors) {
@@ -160,23 +162,8 @@
             this.infoPointSprite = null;
             this.addFonts();
             this.addInfoGraphics();
-            this.addTestData();
         },
         methods:{
-            addTestData(){
-                //let points = [];
-                // for(let i = 0; i < 50; i++){
-                //     points.push({x: i*5, y: Math.tan(Math.random())*Math.random()*150, color: this.colors.point, shape: 'circle', size:4, info: "BUY ME A NUGGET"});
-                // }
-                // this.addPointsArray(points);
-                //let xc = 100000;
-                for(let i = 0; i < 1000; i++){
-                    setTimeout(()=>{
-                        this.addPoint(Date.now(), Math.tan(Math.random())*Math.random()*150, this.colorsHex.point, 'circle', 4, "BUY ME A NUGGET")
-                        //xc+=50 * Math.random()+50;
-                    }, 50+i)
-                }
-            },
             addFonts(){
                 PIXI.BitmapFont.from("HLFont", {
                     fill: this.colorsHex.texts,
@@ -820,6 +807,20 @@
                 return '0x' +(g | (b << 8) | (r << 16)).toString(16);
             }
         },
+        watch: {
+            pointsData: {
+                handler(data) {
+                    if(data.length - this.pointsDataUpdateLength>1){
+                        this.addPointsArray(data.slice(this.pointsDataUpdateLength - data.length))
+                    }else{
+                        const lastIndex = data.length-1;
+                        this.addPoint(data[lastIndex].x, data[lastIndex].y, data[lastIndex].color, data[lastIndex].shape, data[lastIndex].size, data[lastIndex].info)
+                    }
+                    this.pointsDataUpdateLength = data.length
+                },
+                deep: true
+            }
+        }
     }
 </script>
 
