@@ -1,6 +1,6 @@
 <template>
   <div>
-    <pixi-chart
+    <pixi-line-chart
             :pointsData="points"
             :is-date-time="false"
             :main-chart-padding="{top: 20, bottom: 40, left: 25, right: 25}"
@@ -11,11 +11,11 @@
 </template>
 
 <script>
-  import pixiChart from "./components/pixiChart";
+  import pixiLineChart from "./components/pixiLineChart";
   export default {
     name: "App",
     components: {
-      pixiChart
+      pixiLineChart
     },
     data: ()=>({
       points: [],

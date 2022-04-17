@@ -7,7 +7,7 @@
     import * as PIXI from 'pixi.js'
     import * as _ from 'lodash';
     export default {
-        name: "pixiChart",
+        name: "pixiLineChart",
         props: {
             maxHorizontalLabels: {type: Number, default: 20},
             horizontalLines: {type: Number, default: 5},
