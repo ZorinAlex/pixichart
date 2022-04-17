@@ -144,7 +144,7 @@
                 // }
                 // this.addPointsArray(points);
                 //let xc = 100000;
-                for(let i = 0; i < 500; i++){
+                for(let i = 0; i < 1000; i++){
                     setTimeout(()=>{
                         this.addPoint(Date.now(), Math.tan(Math.random())*Math.random()*150, this.colors.point, 'circle', 4, "BUY ME A NUGGET")
                         //xc+=50 * Math.random()+50;
@@ -166,12 +166,12 @@
                     fill: this.colors.infoBoxValues,
                     fontSize: this.labelStyles.infoBoxValues.fontSize*2,
                     fontWeight: this.labelStyles.infoBoxValues.fontWeight,
-                }, {chars: [['a', 'z'], ['0', '9'], ['A', 'Z'], '.:- ']});
+                }, {chars: [['a', 'z'], ['0', '9'], ['A', 'Z'], '.:- /']});
                 PIXI.BitmapFont.from("IBText", {
                     fill: this.colors.infoBoxText,
                     fontSize: this.labelStyles.infoBoxValues.fontSize*2,
                     fontWeight: this.labelStyles.infoBoxValues.fontWeight,
-                }, {chars: [['a', 'z'], ['0', '9'], ['A', 'Z'], '.:- ']});
+                }, {chars: [['a', 'z'], ['0', '9'], ['A', 'Z'], '.:- /']});
             },
             redrawLineChart(){
                 this.lineGraphics.clear();
