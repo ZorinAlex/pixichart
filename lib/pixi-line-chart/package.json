@@ -1,6 +1,6 @@
 {
   "name": "pixi-line-chart",
-  "version": "1.0.3",
+  "version": "1.0.4",
   "description": "",
   "main": "dist/pixi-line-chart.ssr.js",
   "browser": "dist/pixi-line-chart.esm.js",
