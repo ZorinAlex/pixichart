@@ -1,6 +1,8 @@
 # Pixi Line Chart
 ## Simple Line Chart Component for Vue 3.0 <img src="https://vuejs.org/images/logo.png" width="25" height="25">
 
+<img src="https://github.com/ZorinAlex/pixichart/blob/master/pixichart.jpg" height="250">
+
 ## Features
 - Ability to add points reactive, push ponts to points array property, several or one by one
 - Ability to handle big datasets with bottom horizontal navigation
