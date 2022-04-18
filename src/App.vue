@@ -37,11 +37,6 @@
         );
         this.x += 300
       }
-    },
-    computed:{
-    },
-    mounted() {
-
     }
   };
 </script>
