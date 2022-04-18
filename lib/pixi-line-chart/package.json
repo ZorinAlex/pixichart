@@ -52,5 +52,12 @@
   },
   "engines": {
     "node": ">=12"
-  }
+  },
+  "keywords": [
+    "vue",
+    "vue3",
+    "chart",
+    "line-chart",
+    "component"
+  ]
 }

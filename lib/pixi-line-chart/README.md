@@ -1,15 +1,15 @@
 # Pixi Line Chart
-## Simple Line Chart Component for Vue 3.0 <img src="https://vuejs.org/images/logo.png" width="25" height="25">
+Simple Line Chart Component for Vue 3.0 <img src="https://vuejs.org/images/logo.png" width="25" height="25">
 
 <img src="https://github.com/ZorinAlex/pixichart/blob/master/pixichart.jpg" height="250">
 
 ## Features
-- Ability to add points reactive, push ponts to points array property, several or one by one
+- Ability to add points reactive, push points to points array property, several or one by one
 - Ability to handle big datasets with bottom horizontal navigation
-- Vertical autoscale by min and max values on seleted region
+- Vertical autoscale by min and max values on selected region
 - Full colors and sizes customization
 - Draw data with real values horizontal scale by number or Date timestamp
-- Add different poins colors and each point personal info text
+- Add different point colors sizes and shapes and each point personal info text
 
 ## Installation
 
@@ -34,9 +34,9 @@ npm i pixi-line-chart
 | colors | Object | see table below | chart colors customize |
 | labelStyles | Object | see table below | chart labels customize |
 | infoBoxColorFollow | Boolean | true | color of infobox will depend on point color |
-| pointsData | Array |  | Data points array |
+| pointsData | Array<Object> |  | Data points array, see table below |
                         
-### Colors Objet property
+### Colors Object property
 | Prop Name | Default Color |
 | ------ | ------ |
 | background | ![#0C0C0C](https://via.placeholder.com/15/0C0C0C/000000?text=+) `#0C0C0C`|
@@ -53,7 +53,7 @@ npm i pixi-line-chart
 | miniChartCenterBackground | ![#219653](https://via.placeholder.com/15/219653/000000?text=+) `#219653` |
 | timePickerColor | ![#219653](https://via.placeholder.com/15/219653/000000?text=+) `#219653` |
 
-### labelStyles Objet property
+### labelStyles Object property
 | Prop Name | Default |
 | ------ | ------ |
 | fontFamily | Roboto |
@@ -70,6 +70,15 @@ npm i pixi-line-chart
 | infoBoxText.fontSize | 11 |
 | infoBoxText.fontWeight | normal |
 
+### Point Object property
+| Prop Name | Type | Default | is Required |Short description |
+| ------ | ------ | ------ | ------ | ------ |
+| x | Number |  | true | x coord as number or Date timestamp for data if isDateTime true|
+| y | Number |  | true | y coord number |
+| color | String |  | true | point color |
+| size | Number |  | true | point size |
+| shape | String |  | true | point shape 'circle', 'rectangle' or 'star' |
+| info | String |  | false | additional point info text for infobox |
 ## Example
 
 ```javascript
