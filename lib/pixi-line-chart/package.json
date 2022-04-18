@@ -1,12 +1,17 @@
 {
   "name": "pixi-line-chart",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "description": "",
   "main": "dist/pixi-line-chart.ssr.js",
   "browser": "dist/pixi-line-chart.esm.js",
   "module": "dist/pixi-line-chart.esm.js",
   "unpkg": "dist/pixi-line-chart.min.js",
   "author": "Zorin Alex",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/ZorinAlex/pixichart"
+  },
   "files": [
     "dist/*",
     "src/**/*.vue"
