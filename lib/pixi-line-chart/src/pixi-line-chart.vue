@@ -118,7 +118,7 @@
       //for devtools
       window.PIXI = PIXI;
       //
-      this.app = new PIXI.Application({ antialias: true, transparent: false, backgroundColor: this.colorsHex.background, resolution: 1.25});
+      this.app = new PIXI.Application({ antialias: true, backgroundColor: this.colorsHex.background, resolution: 1.25});
       window.addEventListener('resize', this.onDeviceScreenResize);
       this.$el.appendChild(this.app.view);
       this.app.renderer.view.style.display = "block";
@@ -369,28 +369,25 @@
           this.miniLinePickerGraphics.lineTo(this.miniChartHorizontalPickerWidth/2+1,miniChartHeight/2+10);
 
           let texture = this.app.renderer.generateTexture(this.miniLinePickerGraphics);
-          let leftSide = new PIXI.Sprite(texture);
-          let rightSide = new PIXI.Sprite(texture);
-          leftSide.x = this.miniChartPadding.left - this.miniChartHorizontalPickerWidth;
-          leftSide.y = miniChartHeight/2;
-          leftSide.name = 'left';
-          rightSide.x = this.app.renderer.width/this.app.renderer.resolution - this.miniChartPadding.right;
-          rightSide.y = miniChartHeight/2;
-          rightSide.name = 'right';
-          leftSide.interactive = true;
-          leftSide.buttonMode = true;
-          leftSide.on('pointerdown', this.onDragStart);
-          leftSide.on('pointerup', this.onDragEnd);
-          leftSide.on('pointerupoutside', this.onDragEnd);
-          rightSide.interactive = true;
-          rightSide.buttonMode = true;
-          rightSide.on('pointerdown', this.onDragStart);
-          rightSide.on('pointerup', this.onDragEnd);
-          rightSide.on('pointerupoutside', this.onDragEnd);
-          rightSide.cursor = 'col-resize';
-          leftSide.cursor = 'col-resize';
-          this.leftSide = leftSide;
-          this.rightSide = rightSide;
+          this.leftSide = new PIXI.Sprite(texture);
+          this.rightSide = new PIXI.Sprite(texture);
+          this.leftSide.x = this.miniChartPadding.left - this.miniChartHorizontalPickerWidth;
+          this.leftSide.y = miniChartHeight/2;
+          this.leftSide.name = 'left';
+          this.rightSide.x = this.app.renderer.width/this.app.renderer.resolution - this.miniChartPadding.right;
+          this.rightSide.y = miniChartHeight/2;
+          this.rightSide.name = 'right';
+
+          this.leftSide.interactive = true;
+          this.leftSide.on('pointerdown', this.onDragStart, this.leftSide);
+          this.rightSide.interactive = true;
+          this.rightSide.on('pointerdown', this.onDragStart, this.rightSide);
+          this.rightSide.cursor = 'col-resize';
+          this.leftSide.cursor = 'col-resize';
+          this.app.stage.interactive = true;
+          this.app.stage.hitArea = this.app.screen;
+          this.app.stage.on('pointerup', this.onDragEnd);
+          this.app.stage.on('pointerupoutside', this.onDragEnd);
 
           this.miniLinePickerGraphics.clear();
           this.miniLinePickerGraphics.beginFill(this.colorsHex.miniChartSideBackground);
@@ -407,7 +404,7 @@
           rightSideBg.alpha = 0.7;
           leftSideBg.position.x = this.miniChartPadding.left - this.miniChartHorizontalPickerWidth/2;
           leftSideBg.width = this.app.renderer.width/this.app.renderer.resolution;
-          rightSideBg.position.x = rightSide.position.x + this.miniChartHorizontalPickerWidth/2;
+          rightSideBg.position.x = this.rightSide.position.x + this.miniChartHorizontalPickerWidth/2;
           rightSideBg.width = this.app.renderer.width/this.app.renderer.resolution;
           this.leftSideBg = leftSideBg;
           this.rightSideBg = rightSideBg;
@@ -420,11 +417,9 @@
           this.centerSide = new PIXI.Sprite(texture);
           this.centerSide.alpha = 0.1;
           this.centerSide.interactive = true;
-          this.centerSide.buttonMode = true;
           this.centerSide.name = 'center';
-          this.centerSide.on('pointerdown', this.onDragStart);
-          this.centerSide.on('pointerup', this.onDragEnd);
-          this.centerSide.on('pointerupoutside', this.onDragEnd);
+          this.centerSide.on('pointerdown', this.onDragStart, this.centerSide);
+
           this.centerSide.y = miniChartHeight/2;
           this.centerSide.x = this.miniChartPadding.left - this.miniChartHorizontalPickerWidth+ this.miniChartHorizontalPickerWidth/2;
           this.centerSide.width = this.app.renderer.width/this.app.renderer.resolution - this.miniChartPadding.right - this.miniChartPadding.left+ this.miniChartHorizontalPickerWidth;
@@ -432,8 +427,8 @@
           this.miniLineChartPickerContainer.addChild(this.centerSide);
           this.miniLineChartPickerContainer.addChild(leftSideBg);
           this.miniLineChartPickerContainer.addChild(rightSideBg);
-          this.miniLineChartPickerContainer.addChild(leftSide);
-          this.miniLineChartPickerContainer.addChild(rightSide);
+          this.miniLineChartPickerContainer.addChild(this.leftSide);
+          this.miniLineChartPickerContainer.addChild(this.rightSide);
         }
       },
       moveTimePickers(){
@@ -455,16 +450,13 @@
         }
       },
       onDragStart(e) {
-        //e.target.alpha = 0.5;
         this.dragStartPosition = {x: e.data.global.x, y: e.data.global.y};
         this.dragSpriteStartX = e.target.position.x;
         this.selectedTarget = e.target;
-        this.app.stage.interactive = true;
         this.app.stage.on('pointermove', this.onDragMove);
       },
       onDragEnd() {
-        //this.selectedTarget.alpha = 1;
-        this.app.stage.interactive = false;
+        this.app.stage.off('pointermove', this.onDragMove);
       },
       onDragMove(e) {
         this.isTimeMoved = true;
@@ -575,6 +567,7 @@
         this.lineGraphics.hitArea = new PIXI.Rectangle(0, 0, this.viewWidth(), this.viewHeight());
         this.lineGraphics.name = "lineGraphics";
         this.lineGraphics.on('mousemove', this.onMoveInfographics);
+        this.lineGraphics.on('mouseout', this.hideMoveInfographics);
         this.infoText = new PIXI.Container();
         this.infoText.alpha = 0;
         let textStyle = {
@@ -712,8 +705,12 @@
           sideR.tint = tint;
         }
       },
+      hideMoveInfographics(){
+        this.infoPointSprite.alpha = 0;
+        this.infoText.alpha = 0;
+      },
       onMoveInfographics(e){
-        if(!_.isNil(e.target) && e.target.name === this.lineGraphics.name && !_.isNil(this.globalsParams)){
+        if(!_.isNil(e.target) && !_.isNil(this.globalsParams)){
           let x_coord = e.data.global.x;
           const {Xmin, Ymin,Xfactor, Yfactor} = this.globalsParams;
           const leftIndex = _.findIndex(this.currentPoints, point =>{
@@ -753,21 +750,20 @@
           this.infoPointSprite.alpha = 1;
           this.infoPointSprite.tint = this.lightenDarkenColor(this.currentPoints[leftIndex].color, -100);
           this.infoText.alpha = 1;
-        }else{
-          this.infoPointSprite.alpha = 0;
-          this.infoText.alpha = 0;
         }
       },
       onDeviceScreenResize(){
         this.app.renderer.resize(this.$el.offsetWidth, this.chartHeight);
         this.lineGraphics.hitArea = new PIXI.Rectangle(0, 0, this.viewWidth(), this.viewHeight());
-        this.clearContainers();
-        this.drawMiniLineChart();
-        this.drawLineChart();
-        this.drawHorizontalAxes();
-        this.addValueLabels();
-        this.addTimeLabels();
-        this.replaceTimePickers()
+        if(this.points.length>2){
+          this.clearContainers();
+          this.drawMiniLineChart();
+          this.drawLineChart();
+          this.drawHorizontalAxes();
+          this.addValueLabels();
+          this.addTimeLabels();
+          this.replaceTimePickers()
+        }
       },
       replaceTimePickers(){
         const {Xmin, Xmax} = this.minMaxXData();
@@ -812,6 +808,17 @@
         handler(data) {
           if(data.length - this.pointsDataUpdateLength>1){
             this.addPointsArray(data.slice(this.pointsDataUpdateLength - data.length))
+          }else if(data.length === 0){
+            this.points = [];
+            this.currentPoints = [];
+            this.lineGraphics.clear();
+            this.miniLineGraphics.clear();
+            this.linePointsGraphics.clear();
+            this.miniLinePickerGraphics.clear();
+            this.miniLineChartPickerContainer.removeChildren();
+            this.valuesLabelsContainer.removeChildren();
+            this.timeLabelsContainer.removeChildren();
+
           }else{
             const lastIndex = data.length-1;
             this.addPoint(data[lastIndex].x, data[lastIndex].y, data[lastIndex].color, data[lastIndex].shape, data[lastIndex].size, data[lastIndex].info)

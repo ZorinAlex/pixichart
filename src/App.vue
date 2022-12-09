@@ -7,6 +7,7 @@
     />
     <button @click="add">ADD POINT</button>
     <button @click="addArr">ADD ARRAY</button>
+    <button @click="clearPionts">CLEAR</button>
   </div>
 </template>
 
@@ -36,6 +37,9 @@
                 ]
         );
         this.x += 300
+      },
+      clearPionts(){
+        this.points = []
       }
     }
   };
